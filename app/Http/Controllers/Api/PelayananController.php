@@ -82,4 +82,9 @@ class PelayananController extends Controller
 
         return response()->json(['message' => 'Semua data jenis pelayanan tersebut telah dihapus.']);
     }
+    public function index()
+    {
+        $service = Service::all();
+        return response()->json(['status' =>  'success', 'data' => $service]);
+    }
 }

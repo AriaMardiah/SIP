@@ -11,7 +11,7 @@ class ReportPelayananController extends Controller
 {
     public function index()
     {
-        $data = ReportService::with(['user:id,name', 'service:id,jenis_pelayanan'])
+        $data = ReportService::with(['user:id,name', 'service:id,jenis_pelayanan', 'penerima:id,name'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -36,6 +36,7 @@ class ReportPelayananController extends Controller
         }
 
         $validated['user_id'] = auth()->id();
+        $validated['penerima'] = auth()->id();
         $validated['status'] = 'progress';
 
         $report = ReportService::create($validated);
@@ -72,9 +73,11 @@ class ReportPelayananController extends Controller
             'tindak_lanjut' => 'nullable|string'
         ]);
 
+
         $service->update([
             'status' => $request->status,
-            'tindak_lanjut' => $request->tindak_lanjut
+            'tindak_lanjut' => $request->tindak_lanjut,
+            'penerima' => auth()->id(),
         ]);
 
         return response()->json(['status' => 'success', 'message' => 'Tindak lanjut diperbarui']);

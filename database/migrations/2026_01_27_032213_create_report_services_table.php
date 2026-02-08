@@ -24,6 +24,7 @@ return new class extends Migration
             $table->text('tindak_lanjut')->nullable();
             $table->string('dokumentasi')->nullable();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('penerima')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });
     }

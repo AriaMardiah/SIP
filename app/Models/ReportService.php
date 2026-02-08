@@ -12,12 +12,16 @@ class ReportService extends Model
     protected $fillable = [
         'nama_konsumen', 'instansi', 'email_konsumen', 'no_hp_konsumen',
         'service_id', 'media_pelaporan', 'uraian', 'status',
-        'tindak_lanjut', 'dokumentasi', 'user_id'
+        'tindak_lanjut', 'dokumentasi', 'user_id','penerima'
     ];
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class,'user_id');
+    }
+    public function penerima()
+    {
+        return $this->belongsTo(User::class,'penerima');
     }
 
     public function service()

@@ -7,6 +7,7 @@ use App\Models\Task;
 use App\Models\TaskReport;
 use App\Models\User;
 use Illuminate\Http\Request;
+use function Illuminate\Support\now;
 
 class AdminTaskController extends Controller
 {
@@ -70,5 +71,16 @@ class AdminTaskController extends Controller
         $task = Task::findOrFail($id);
         $task->delete();
         return response()->json(['message' => 'Tugas berhasil dihapus']);
+    }
+
+    public function storeTask(Request $request)
+    {
+        $request->validate(['uraian' => 'required|string']);
+
+        Task::create([
+            'uraian' => $request->uraian,
+            'created_at' => now()
+        ]);
+        return response()->json(['massage'=>'Tugas Baru di tambahkan']);
     }
 }

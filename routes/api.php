@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\DashboardAdmin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -30,18 +31,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/admin/tasks', [AdminTaskController::class, 'storeTask']);
     Route::put('/admin/tasks/{id}', [AdminTaskController::class, 'updateTask']);
     Route::delete('/admin/tasks/{id}', [AdminTaskController::class, 'destroyTask']);
-    Route::get('/petugas/daily-task', [PetugasTaskController::class, 'index']);
-    Route::post('/task-reports', [PetugasTaskController::class, 'store']);
-
+    
+    Route::get('/admin/service-types-list', [PelayananController::class, 'index']);
     Route::get('/admin/pelayanan-report', [PelayananController::class, 'getMonthlyReport']);
     Route::post('/admin/services-init', [PelayananController::class, 'initService']);
     Route::put('/admin/services-rename', [PelayananController::class, 'renameService']);
     Route::delete('/admin/services-remove', [PelayananController::class, 'removeService']);
-
+    
     Route::get('/petugas/services', [ReportPelayananController::class, 'index']);
     Route::post('/petugas/services', [ReportPelayananController::class, 'store']);
     Route::patch('/petugas/services/{id}/progress', [ReportPelayananController::class, 'updateProgress']);
     Route::delete('/petugas/services/{id}', [ReportPelayananController::class, 'destroy']);
+    
+    Route::get('/petugas/daily-task', [PetugasTaskController::class, 'index']);
+    Route::post('/task-reports', [PetugasTaskController::class, 'store']);
 
     Route::apiResource('schedules', ScheduleController::class);
     Route::get('/my-schedules', [ScheduleController::class, 'mySchedule']);
@@ -53,4 +56,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/profile', [AuthController::class, 'updateProfile']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', fn($request) => $request->user());
+    Route::get('/DashboardAdmin', [DashboardAdmin::class,'index']);
 });
