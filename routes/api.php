@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\DashboardAdmin;
+use App\Http\Controllers\Api\ImportController;
+use App\Http\Controllers\Api\ServiceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -37,6 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/admin/services-init', [PelayananController::class, 'initService']);
     Route::put('/admin/services-rename', [PelayananController::class, 'renameService']);
     Route::delete('/admin/services-remove', [PelayananController::class, 'removeService']);
+    Route::get('/admin/dashboard', [DashboardAdmin::class, 'index']);
     
     Route::get('/petugas/services', [ReportPelayananController::class, 'index']);
     Route::post('/petugas/services', [ReportPelayananController::class, 'store']);
@@ -52,6 +55,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('template-chats', ChatTemplateController::class);
 
     Route::apiResource('readmes', ReadmeController::class);
+    Route::post('/import-service', action: [ImportController::class, 'import']);
+
 
     Route::put('/profile', [AuthController::class, 'updateProfile']);
     Route::post('/logout', [AuthController::class, 'logout']);
