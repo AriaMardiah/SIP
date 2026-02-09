@@ -12,20 +12,28 @@ class SchedulesImport implements ToModel, WithHeadingRow
 {
     public function model(array $row)
     {
-        // Cari user berdasarkan nama
-        $user = User::where('name', $row['petugas'])->first();
-
-        if (!$user) {
-            return null; // skip kalau user tidak ditemukan
+        if (!isset($row['petugas']) || !isset($row['tanggal'])) {
+            return null;
         }
 
-        return new Schedule([
-            'user_id'    => $user->id,
-            'date'       => Carbon::createFromFormat(
-                'd M Y',
-                $row['tanggal']
-            )->format('Y-m-d'),
-            'keterangan' => $row['keterangan'],
-        ]);
+        // Cari user
+        $user = User::whereRaw('LOWER(name) = ?', [strtolower($row['petugas'])])->first();
+
+        if (!$user) {
+            return null;
+        }
+
+        $date = Carbon::parse($row['tanggal'])->format('Y-m-d');
+
+        // CEK DUPLIKAT -> UPDATE ATAU INSERT
+        return Schedule::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'date'    => $date,
+            ],
+            [
+                'keterangan' => $row['keterangan'] ?? null,
+            ]
+        );
     }
 }
