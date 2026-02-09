@@ -11,12 +11,28 @@ class ReportPelayananController extends Controller
 {
     public function index()
     {
-        $data = ReportService::with(['user:id,name', 'service:id,jenis_pelayanan', 'penerima:id,name'])
+        $data = ReportService::with([
+            'user:id,name',
+            'service:id,jenis_pelayanan',
+            'penerima:id,name'
+        ])
+            ->orderByRaw("
+            CASE
+                WHEN status = 'progress' THEN 0
+                WHEN status = 'selesai' THEN 1
+                ELSE 2
+            END
+        ")
+
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return response()->json(['status' => 'success', 'data' => $data]);
+        return response()->json([
+            'status' => 'success',
+            'data' => $data
+        ]);
     }
+
 
     public function store(Request $request)
     {
