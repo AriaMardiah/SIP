@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\MediaPelaporanController;
 use App\Http\Controllers\Api\DashboardAdmin;
 use App\Http\Controllers\Api\ImportController;
 use App\Http\Controllers\Api\ServiceController;
@@ -40,6 +41,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/admin/services-rename', [PelayananController::class, 'renameService']);
     Route::delete('/admin/services-remove', [PelayananController::class, 'removeService']);
     Route::get('/admin/dashboard', [DashboardAdmin::class, 'index']);
+
+    Route::get('/admin/media', [MediaPelaporanController::class, 'index']);
+    Route::post('/admin/media', [MediaPelaporanController::class, 'store']);
+    Route::put('/admin/media/{id}', [MediaPelaporanController::class, 'update']);
+    Route::delete('/admin/media/{id}', [MediaPelaporanController::class, 'destroy']);
     
     Route::get('/petugas/services', [ReportPelayananController::class, 'index']);
     Route::post('/petugas/services', [ReportPelayananController::class, 'store']);

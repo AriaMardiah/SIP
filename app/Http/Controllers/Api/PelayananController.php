@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\MediaPelaporan;
 use App\Models\ReportService;
 use App\Models\Service;
 use Illuminate\Http\Request;
@@ -15,37 +16,47 @@ class PelayananController extends Controller
      * Mengambil rekapitulasi bulanan.
      * Jika database kosong, ini akan mengembalikan array kosong.
      */
-    public function getMonthlyReport(Request $request)
+
+public function getMonthlyReport(Request $request)
 {
     $bulan = $request->query('bulan', date('n'));
     $tahun = $request->query('tahun', date('Y'));
 
-    // Ambil semua jenis pelayanan dari tabel service
-    $jenisList = Service::distinct()->pluck('jenis_pelayanan');
+    $services = Service::all();
+    $medias   = MediaPelaporan::all();
 
-    $report = $jenisList->map(function ($jenis) use ($bulan, $tahun) {
+    // 🔥 Ambil semua data sekaligus (lebih cepat)
+    $raw = ReportService::select(
+            'service_id',
+            'id_media',
+            DB::raw('COUNT(*) as total')
+        )
+        ->whereYear('created_at', $tahun)
+        ->whereMonth('created_at', $bulan)
+        ->groupBy('service_id', 'id_media')
+        ->get();
 
-        // Helper untuk hitung per rentang hari
-        $countByDayRange = function ($start, $end = null) use ($jenis, $bulan, $tahun) {
-            return ReportService::whereYear('created_at', $tahun)
-                ->whereMonth('created_at', $bulan)
-                ->when($end, function ($q) use ($start, $end) {
-                    $q->whereBetween(DB::raw('DAY(created_at)'), [$start, $end]);
-                }, function ($q) use ($start) {
-                    $q->where(DB::raw('DAY(created_at)'), '>=', $start);
-                })
-                ->whereHas('service', function ($q) use ($jenis) {
-                    $q->where('jenis_pelayanan', $jenis);
-                })
-                ->count();
-        };
+    $report = $services->map(function ($service) use ($medias, $raw) {
+
+        $mediaData = $medias->map(function ($media) use ($service, $raw) {
+
+            $found = $raw->first(function ($r) use ($service, $media) {
+                return $r->service_id == $service->id &&
+                       $r->id_media == $media->id;
+            });
+
+            return [
+                'id_media' => $media->id,
+                'media'    => $media->media,
+                'total'    => $found ? (int) $found->total : 0
+            ];
+        });
 
         return [
-            'jenis'   => $jenis,
-            'minggu1' => $countByDayRange(1, 7),
-            'minggu2' => $countByDayRange(8, 14),
-            'minggu3' => $countByDayRange(15, 21),
-            'minggu4' => $countByDayRange(22), // sisa hari bulan
+            'service_id' => $service->id,
+            'jenis'      => $service->jenis_pelayanan,
+            'medias'     => $mediaData,
+            'total'      => $mediaData->sum('total')
         ];
     });
 
@@ -53,9 +64,11 @@ class PelayananController extends Controller
         'status' => 'success',
         'bulan'  => $bulan,
         'tahun'  => $tahun,
+        'media'  => $medias,
         'data'   => $report
     ]);
 }
+
 
     // 1. TAMBAH JENIS BARU (Initial Record)
     public function initService(Request $request)
@@ -96,6 +109,6 @@ class PelayananController extends Controller
     public function index()
     {
         $service = Service::all();
-        return response()->json(['status' =>  'success', 'data' => $service]);
+        return response()->json(['status' => 'success', 'data' => $service]);
     }
 }

@@ -14,7 +14,8 @@ class ReportPelayananController extends Controller
         $data = ReportService::with([
             'user:id,name',
             'service:id,jenis_pelayanan',
-            'penerima:id,name'
+            'penerima:id,name',
+            'media:id,media'
         ])
             ->orderByRaw("
             CASE
@@ -42,7 +43,7 @@ class ReportPelayananController extends Controller
             'email_konsumen' => 'nullable|email',
             'no_hp_konsumen' => 'nullable|string',
             'service_id' => 'required|exists:services,id',
-            'media_pelaporan' => 'required|string',
+            'id_media' => 'required|exists:media_pelaporan,id',
             'uraian' => 'required|string',
             'dokumentasi' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
         ]);
