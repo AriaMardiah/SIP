@@ -9,31 +9,68 @@ use Illuminate\Support\Facades\Storage;
 
 class ReportPelayananController extends Controller
 {
-    public function index()
-    {
-        $data = ReportService::with([
-            'user:id,name',
-            'service:id,jenis_pelayanan',
-            'penerima:id,name',
-            'media:id,media'
-        ])
-            ->orderByRaw("
+
+    public function index(Request $request)
+{
+    $query = ReportService::with([
+        'user:id,name',
+        'service:id,jenis_pelayanan',
+        'penerima:id,name',
+        'media:id,media'
+    ]);
+
+    if ($request->status) {
+        $query->where('status', $request->status);
+    }
+
+    if ($request->service_id) {
+        $query->where('service_id', $request->service_id);
+    }
+
+    if ($request->id_media) {
+        $query->where('id_media', $request->id_media);
+    }
+
+    if ($request->semester && $request->year) {
+
+        $semester = $request->semester;
+        $year = $request->year;
+
+        $query->whereYear('created_at', $year);
+
+        if ($semester == 1) {
+            $query->whereMonth('created_at', '>=', 1)
+                  ->whereMonth('created_at', '<=', 6);
+        } elseif ($semester == 2) {
+            $query->whereMonth('created_at', '>=', 7)
+                  ->whereMonth('created_at', '<=', 12);
+        }
+    }
+
+
+    if ($request->start_date && $request->end_date) {
+        $query->whereBetween('created_at', [
+            $request->start_date . ' 00:00:00',
+            $request->end_date . ' 23:59:59'
+        ]);
+    }
+
+    $data = $query
+        ->orderByRaw("
             CASE
                 WHEN status = 'progress' THEN 0
                 WHEN status = 'selesai' THEN 1
                 ELSE 2
             END
         ")
+        ->orderBy('created_at', 'desc')
+        ->get();
 
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $data
-        ]);
-    }
-
+    return response()->json([
+        'status' => 'success',
+        'data' => $data
+    ]);
+}
 
     public function store(Request $request)
     {
@@ -49,8 +86,23 @@ class ReportPelayananController extends Controller
         ]);
 
         if ($request->hasFile('dokumentasi')) {
-            $validated['dokumentasi'] = $request->file('dokumentasi')->store('dokumentasi_pelayanan', 'public');
+
+            $file = $request->file('dokumentasi');
+        
+            $extension = $file->getClientOriginalExtension();
+        
+            $fileName = $validated['nama_konsumen'] . '_' .
+            now()->format('Y-m-d_H-i-s') .
+            '.' . $extension;
+
+        
+            $validated['dokumentasi'] = $file->storeAs(
+                'dokumentasi_pelayanan',
+                $fileName,
+                'public'
+            );
         }
+        
 
         $validated['user_id'] = auth()->id();
         $validated['penerima'] = auth()->id();
