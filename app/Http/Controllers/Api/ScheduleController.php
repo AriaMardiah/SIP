@@ -23,7 +23,7 @@ class ScheduleController extends Controller
         return response()->json(['data' => $schedules]);
     }
 
-public function store(Request $request)
+    public function store(Request $request)
     {
         $validated = $request->validate([
             'date' => 'required|date',
@@ -66,13 +66,33 @@ public function store(Request $request)
             'keterangan' => 'required|string',
         ]);
 
-        $schedule->update($validated);
+        // 🔥 cek duplikat (kecuali data yg sedang diedit)
+        $exists = Schedule::where('user_id', $validated['user_id'])
+            ->where('date', $validated['date'])
+            ->where('id', '!=', $schedule->id) // penting agar tidak bentrok dengan dirinya sendiri
+            ->exists();
+
+        if ($exists) {
+            $user = User::find($validated['user_id']);
+
+            return response()->json([
+                'message' => "Jadwal untuk {$user->name} pada tanggal tersebut sudah ada!"
+            ], 422);
+        }
+
+        // update data
+        $schedule->update([
+            'user_id' => $validated['user_id'],
+            'date' => $validated['date'],
+            'keterangan' => $validated['keterangan'],
+        ]);
 
         return response()->json([
             'status' => 'success',
             'message' => 'Jadwal berhasil diperbarui'
         ]);
     }
+
 
     public function destroy(Schedule $schedule)
     {
