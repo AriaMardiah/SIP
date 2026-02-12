@@ -30,7 +30,7 @@ class DashboardAdmin extends Controller
 
         /* ================= PETUGAS ================= */
         $petugas = User::where('is_active', true)
-            ->where('role', 'petugas')
+            // ->where('role', 'petugas')
             ->get();
 
         $totalPetugas = $petugas->count();
@@ -90,11 +90,19 @@ class DashboardAdmin extends Controller
                     $filterTanggal($q, 'date');
                 })->count();
 
-            $pelayananSelesai = ReportService::where('penerima', $user->id)
+            $pelayananSelesai = ReportService::selectRaw("
+        COUNT(CASE WHEN penerima = ? THEN 1 END) +
+        COUNT(CASE WHEN user_id = ? THEN 1 END)
+        as total
+    ", [$user->id, $user->id])
                 ->where('status', 'selesai')
                 ->where(function ($q) use ($filterTanggal) {
                     $filterTanggal($q, 'created_at');
-                })->count();
+                })
+                ->value('total');
+
+
+
 
             return [
                 'user_id' => $user->id,

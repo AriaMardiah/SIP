@@ -68,4 +68,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', fn($request) => $request->user());
     Route::get('/DashboardAdmin', [DashboardAdmin::class,'index']);
+    Route::get('/petugas/services/download/{id}', [ReportPelayananController::class, 'download'])
+->middleware('auth:sanctum');
 });
+
