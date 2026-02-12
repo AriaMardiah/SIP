@@ -30,7 +30,7 @@ class DashboardAdmin extends Controller
 
         /* ================= PETUGAS ================= */
         $petugas = User::where('is_active', true)
-            // ->where('role', 'petugas')
+            ->where('role', 'petugas')
             ->get();
 
         $totalPetugas = $petugas->count();
