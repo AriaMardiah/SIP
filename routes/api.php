@@ -34,7 +34,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/admin/tasks', [AdminTaskController::class, 'storeTask']);
     Route::put('/admin/tasks/{id}', [AdminTaskController::class, 'updateTask']);
     Route::delete('/admin/tasks/{id}', [AdminTaskController::class, 'destroyTask']);
-    
+
+    Route::prefix('petugas')->middleware('auth:sanctum')->group(function () {
+    Route::get('services/download-zip',
+        [ReportPelayananController::class, 'downloadZip']);
+});
     Route::get('/admin/service-types-list', [PelayananController::class, 'index']);
     Route::get('/admin/pelayanan-report', [PelayananController::class, 'getMonthlyReport']);
     Route::post('/admin/services-init', [PelayananController::class, 'initService']);
@@ -46,12 +50,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/admin/media', [MediaPelaporanController::class, 'store']);
     Route::put('/admin/media/{id}', [MediaPelaporanController::class, 'update']);
     Route::delete('/admin/media/{id}', [MediaPelaporanController::class, 'destroy']);
-    
+
     Route::get('/petugas/services', [ReportPelayananController::class, 'index']);
     Route::post('/petugas/services', [ReportPelayananController::class, 'store']);
     Route::patch('/petugas/services/{id}/progress', [ReportPelayananController::class, 'updateProgress']);
     Route::delete('/petugas/services/{id}', [ReportPelayananController::class, 'destroy']);
-    
+
     Route::get('/petugas/daily-task', [PetugasTaskController::class, 'index']);
     Route::post('/task-reports', [PetugasTaskController::class, 'store']);
 
@@ -67,8 +71,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/profile', [AuthController::class, 'updateProfile']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', fn($request) => $request->user());
-    Route::get('/DashboardAdmin', [DashboardAdmin::class,'index']);
+    Route::get('/DashboardAdmin', [DashboardAdmin::class, 'index']);
     Route::get('/petugas/services/download/{id}', [ReportPelayananController::class, 'download'])
-->middleware('auth:sanctum');
+        ->middleware('auth:sanctum');
 });
-
