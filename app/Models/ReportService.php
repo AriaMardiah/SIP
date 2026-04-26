@@ -12,7 +12,7 @@ class ReportService extends Model
     protected $fillable = [
         'nama_konsumen', 'instansi', 'email_konsumen', 'no_hp_konsumen',
         'service_id', 'id_media', 'uraian', 'status',
-        'tindak_lanjut', 'dokumentasi', 'user_id','penerima'
+        'tindak_lanjut', 'dokumentasi', 'user_id','penerima', 'created_at', 'updated_at'
     ];
 
     public function user()

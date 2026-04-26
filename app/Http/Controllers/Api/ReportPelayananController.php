@@ -7,6 +7,7 @@ use App\Models\ReportService;
 use ZipArchive;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class ReportPelayananController extends Controller
 {
@@ -58,23 +59,12 @@ class ReportPelayananController extends Controller
 
         $data = $query
             ->orderByRaw("
-            CASE
-                WHEN status = 'progress' THEN 0
-                WHEN status = 'selesai' THEN 1
-                ELSE 2
-            END
-        ")
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        $data = $query
-            ->orderByRaw("
-        CASE
-            WHEN status = 'progress' THEN 0
-            WHEN status = 'selesai' THEN 1
-            ELSE 2
-        END
-    ")
+                CASE
+                    WHEN status = 'progress' THEN 0
+                    WHEN status = 'selesai' THEN 1
+                    ELSE 2
+                END
+            ")
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -93,11 +83,6 @@ class ReportPelayananController extends Controller
                 'total_semua_pelayanan' => $totalSemua
             ]
         ]);
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $data
-        ]);
     }
 
     public function store(Request $request)
@@ -110,7 +95,7 @@ class ReportPelayananController extends Controller
             'service_id' => 'required|exists:services,id',
             'id_media' => 'required|exists:media_pelaporan,id',
             'uraian' => 'required|string',
-            'dokumentasi' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
+            'dokumentasi' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
         if ($request->hasFile('dokumentasi')) {
@@ -287,5 +272,63 @@ class ReportPelayananController extends Controller
         }
 
         return response()->download($zipPath)->deleteFileAfterSend(true);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $service = ReportService::findOrFail($id);
+
+        $validated = $request->validate([
+            'nama_konsumen' => 'required|string',
+            'instansi' => 'nullable|string',
+            'email_konsumen' => 'nullable|email',
+            'no_hp_konsumen' => 'nullable|string',
+            'service_id' => 'required|exists:services,id',
+            'id_media' => 'required|exists:media_pelaporan,id',
+            'uraian' => 'required|string',
+            'status' => 'required|in:progress,selesai',
+            'tindak_lanjut' => 'nullable|string',
+            'dokumentasi' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'created_at' => 'nullable|date',
+            'updated_at' => 'nullable|date',
+        ]);
+
+        if ($request->created_at) {
+            $validated['created_at'] = Carbon::parse($request->created_at);
+        }
+
+        if ($request->updated_at) {
+            $validated['updated_at'] = Carbon::parse($request->updated_at);
+        }
+
+        // HANDLE FILE BARU
+        if ($request->hasFile('dokumentasi')) {
+
+            // hapus file lama
+            if ($service->dokumentasi) {
+                Storage::disk('public')->delete($service->dokumentasi);
+            }
+
+            $file = $request->file('dokumentasi');
+            $extension = $file->getClientOriginalExtension();
+
+            $fileName = $validated['nama_konsumen'] . '_' .
+                now()->format('Y-m-d_H-i-s') . '.' . $extension;
+
+            $validated['dokumentasi'] = $file->storeAs(
+                'dokumentasi_pelayanan',
+                $fileName,
+                'public'
+            );
+        }
+
+        $service->timestamps = false;
+        $service->update($validated);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data berhasil diperbarui',
+            'data' => $service
+        ]);
     }
 }

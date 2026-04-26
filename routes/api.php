@@ -55,6 +55,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/petugas/services', [ReportPelayananController::class, 'store']);
     Route::patch('/petugas/services/{id}/progress', [ReportPelayananController::class, 'updateProgress']);
     Route::delete('/petugas/services/{id}', [ReportPelayananController::class, 'destroy']);
+    Route::put('/petugas/services/{id}', [ReportPelayananController::class, 'update']);
 
     Route::get('/petugas/daily-task', [PetugasTaskController::class, 'index']);
     Route::post('/task-reports', [PetugasTaskController::class, 'store']);
